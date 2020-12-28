@@ -24,17 +24,19 @@
                     Autor:
                 </span>
                 {{-- TODO: mostrar el usuario --}}
-                {{ $receta->user_id }}
+                {{ $receta->autor->name }}
             </p>
 
             <p>
                 <span class="font-weight-bold text-primary">
                     Fecha:
                 </span>
-                {{-- TODO: mostrar el usuario --}}
-                {{ $receta-> }}
+        
+                <fecha-receta fecha="{{ $receta->created_at }}"></fecha-receta>
+
             </p>
 
+            
             <div class="ingredientes">
                 <h2 class="my-3 text-primary">
                     Ingredientes

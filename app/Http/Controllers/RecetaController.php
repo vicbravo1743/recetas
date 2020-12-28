@@ -6,7 +6,6 @@ use App\Models\CategoriaRecetas;
 use App\Models\Receta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 
 class RecetaController extends Controller
@@ -14,7 +13,7 @@ class RecetaController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth', ['except' => 'show']);
     }
 
     /**
@@ -99,7 +98,11 @@ class RecetaController extends Controller
      */
     public function edit(Receta $receta)
     {
-        //
+        $categorias = CategoriaRecetas::all(['id', 'nombre']);
+        return view('recetas.edit', [
+            'categorias' => $categorias,
+            'receta' => $receta
+        ]);
     }
 
     /**
@@ -111,7 +114,33 @@ class RecetaController extends Controller
      */
     public function update(Request $request, Receta $receta)
     {
-        //
+        $this->authorize('update', $receta);
+
+        $data = request()->validate([
+            'titulo' => 'required|string|min:6',
+            'categoria' => 'required',
+            'preparacion' => 'required',
+            'ingredientes' => 'required',
+
+        ]);
+
+        $receta->titulo = $data['titulo'];
+        $receta->categoria_id = $data['categoria'];
+        $receta->preparacion = $data['preparacion'];
+        $receta->ingredientes = $data['ingredientes'];
+
+        if(request('imagen')) {
+            $ruta_imagen = $request['imagen']->store('upload_recetas', 'public');
+        
+            $img = Image::make(public_path("storage/{$ruta_imagen}"))->fit(1000, 550);
+            $img->save();
+
+            $receta->imagen = $ruta_imagen;
+        }
+
+        $receta->save();
+
+        return redirect()->route('recetas.index');
     }
 
     /**
@@ -122,6 +151,11 @@ class RecetaController extends Controller
      */
     public function destroy(Receta $receta)
     {
-        //
+
+        $this->authorize('delete', $receta);
+
+        $receta->delete();
+
+        return redirect()->route('recetas.index');
     }
 }
